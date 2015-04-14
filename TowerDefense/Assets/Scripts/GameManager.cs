@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour {
     //float spawnTime = 3f;
 
     public static GameObject[] blueTeam = new GameObject[7];
-    public static GameObject[] redTeam;
+    public static GameObject[] redTeam = new GameObject[7];
     
     public GameObject[] enemyMinions;
     public static int wave = 0;
@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour {
     
 	void Awake () 
     {
-        redTeam = new GameObject[6];
+        //redTeam = new GameObject[7];
         blueTeam[0] = GameObject.FindGameObjectWithTag("blueTeam");
         redTeamHolder = new GameObject("RedTeam").transform;
         redTeam[0] = GameObject.FindGameObjectWithTag("redTeam");
@@ -40,16 +40,17 @@ public class GameManager : MonoBehaviour {
         //Debug.Log("num Enemy Minions: " +  numEnemyMinions);
 	}
 
+    //Enemy Minions spawner
     void InstantiateEnemyMinions()
     {
         int maxCapt = 3;// maximum number of Enemy Captains alowed on field
         int cpts = 0;//current number of enemy captains
-        for (int i = 0; i < redTeam.Length; i++)
+        for (int i = 1; i < redTeam.Length; i++)
         {
             if (redTeam[i] == null && HudEffects.gold > 15)
             {
-                rnd = Random.Range(0, wave);
-                if (rnd >= 2)
+                rnd = Random.Range(0, wave + 1);
+                if (rnd >= 2)//keep is so the field isn't over run with captains
                 {
                     ++cpts;
                     if (cpts > maxCapt)
@@ -58,19 +59,20 @@ public class GameManager : MonoBehaviour {
                     }
                 }
                 //Debug.Log(rnd);
-                redTeam[i] = Instantiate(enemyMinions[rnd], enemyMinionSpawnPoints[i].position, Quaternion.identity) as GameObject;
+                redTeam[i] = Instantiate(enemyMinions[rnd], enemyMinionSpawnPoints[i - 1].position, Quaternion.identity) as GameObject;
                 redTeam[i].transform.SetParent(redTeamHolder);
                 ++numEnemyMinions;
                 HudEffects.gold += 5;
             }
         }
-        ++wave;
+        ++wave;        
         if (wave > 3)
         {
             wave = 3;
         }
     }
 
+    //button minion spawner
     public void InstantiateMinions(GameObject minion)
     {
         int newlySpawned = 0;//the number spawned in this call. when it is equal to the number wanted return

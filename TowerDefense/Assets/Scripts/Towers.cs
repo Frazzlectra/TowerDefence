@@ -8,6 +8,7 @@ public class Towers : Creations
     public Canvas hudCanvas;
     public GameManager gameManager;
     public GameObject[] targetObjs =  new GameObject[6];
+    public int startingDamage = 20;
     string team;
     
 
@@ -20,6 +21,8 @@ public class Towers : Creations
         base.Awake();
         team = gameObject.tag;
     }
+
+    //base
     public override void TakeDamage(float takeDamage)
     {
         //Debug.Log("tower Taking Damage");
@@ -27,6 +30,8 @@ public class Towers : Creations
        // Debug.Log("damage:" + takeDamage);
         base.TakeDamage(takeDamage);
     }
+
+    //if there is a target object && it's alive attack it 
     public override void Update()
     {
         if (targetObj == null)
@@ -59,29 +64,47 @@ public class Towers : Creations
         }
         base.Update();
     }
+
+    //ends the game --  would use application.loadlevel but that would reset the the main menu to say main menu.. :(
     public override void Death()
     {
+        for (int i = 1; i < GameManager.redTeam.Length; i++)
+        {
+            GameManager.Destroy(GameManager.redTeam[i].gameObject);
+        }
+        for (int i = 1; i < GameManager.blueTeam.Length; i++)
+        {
+            GameManager.Destroy(GameManager.blueTeam[i].gameObject);
+        }
+        GameManager.wave = 0;
+        if (HudEffects.highScore < HudEffects.score)
+        {
+            HudEffects.highScore = HudEffects.score;
+        }
+        HudEffects.score = 0;
+        GameManager.numEnemyMinions = 0;
+        HudEffects.gold = 300; //set back to starting gold
         if (gameObject.tag == "blueTeam")
         {
-            //Debug.Log("GameOver");
-            for (int i = 0; i < GameManager.redTeam.Length; i++)
-            {
-                GameManager.Destroy(GameManager.redTeam[i].gameObject);
-            }
-            GameManager.wave = 0;
-            if (HudEffects.highScore < HudEffects.score)
-            {
-                HudEffects.highScore = HudEffects.score;
-            }
-            HudEffects.score = 0;
-            GameManager.numEnemyMinions = 0;            
-            HudEffects.gold = 300; //set back to starting gold
-            mainMenu.gameObject.SetActive(true);
-            hudCanvas.gameObject.SetActive(false);
-            gameManager.gameObject.SetActive(false);
+            MainMenu.mainMenuText.text = "GameOver";
             currentHealth = startingHealth;
+            GameObject other = GameObject.FindGameObjectWithTag("redTeam");
+            other.GetComponent<Towers>().currentHealth = startingHealth;
+            damage = startingDamage;
         }
+        if (gameObject.tag == "redTeam")
+        {
+            MainMenu.mainMenuText.text = "You Win";
+            currentHealth = startingHealth;
+            GameObject other = GameObject.FindGameObjectWithTag("blueTeam");
+            other.GetComponent<Towers>().currentHealth = startingHealth;
+        }
+        mainMenu.gameObject.SetActive(true);
+        hudCanvas.gameObject.SetActive(false);
+        gameManager.gameObject.SetActive(false);
     }
+
+    //used to find minions and attack them
     void OnTriggerEnter(Collider other)
     {
         if (other.tag == "redTeam" && team != "redTeam")
@@ -95,7 +118,8 @@ public class Towers : Creations
             //StartShooting(minion);
         }
     }
-    //void OnTriggerExit()//maybe if targets exit?
+
+    //if something entered the trigger add it to an array of targets
     public void AddTarget(GameObject obj)
     {
         for (int i = 0; i < targetObjs.Length; i++)
@@ -108,4 +132,15 @@ public class Towers : Creations
         }
     }
 
+    //upgrade the tower on the button click
+    public void UpgradeTower()
+    {
+        if (gameObject.tag == "blueTeam")
+        {
+            HudEffects.gold -= 100;
+            float upgradeBy = damage * .125f;
+            damage += upgradeBy;
+            //Debug.Log("damageIncrease" + damage);
+        }
+    }
 }
